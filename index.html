@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ============================================================
+  CLASS PAGE — all links filled in:
+    claude.ai (signup), claude.ai/download (app), claude.ai/settings/billing (Pro),
+    and the class folder via a RELATIVE link (claude_waffle_house.zip) — just put
+    that zip in the same folder as this index.html and it works on any host.
+  The full worksheet is embedded directly on this page.
+  The full worksheet is embedded directly on this page.
+  This file is fully self-contained — host it anywhere.
+  ============================================================
+-->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Code for Data Journalism — Get Started</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧇</text></svg>">
+<style>
+  :root{
+    --ink:#1a1410; --paper:#fffdf7; --line:#e6ddc8; --card:#fff;
+    --accent:#d9a521; --accent2:#b5651d; --warn:#c0392b; --muted:#8a7f6a;
+    --ok:#2e7d32;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+       background:var(--paper);color:var(--ink);line-height:1.55;}
+  .wrap{max-width:860px;margin:0 auto;padding:0 22px}
+
+  header{border-bottom:3px solid var(--ink);background:linear-gradient(180deg,#fcf6e6,#fffdf7)}
+  .hero{padding:46px 0 34px}
+  .kick{text-transform:uppercase;letter-spacing:.2em;color:var(--accent2);font-weight:700;font-size:13px}
+  h1{font-size:clamp(30px,6vw,52px);margin:.18em 0 .1em;letter-spacing:-1px}
+  h1 .wh{color:var(--accent2)}
+  .lede{font-size:18px;color:#3a3026;max-width:60ch}
+  .meta{margin-top:16px;font-size:14px;color:var(--muted)}
+
+  section{padding:34px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 18px}
+  h2 b{color:var(--accent2)}
+
+  /* steps */
+  ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+  ol.steps>li{counter-increment:s;display:grid;grid-template-columns:auto 1fr;gap:16px;
+              background:var(--card);border:1px solid var(--line);border-radius:12px;
+              padding:16px 18px;margin-bottom:12px;transition:.15s}
+  ol.steps>li.done{opacity:.55;background:#f6f2e6}
+  .num{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;font-weight:800;
+       display:flex;align-items:center;justify-content:center;font-size:15px}
+  ol.steps>li.done .num{background:var(--ok)}
+  .num::before{content:counter(s)}
+  ol.steps>li.done .num::before{content:"✓"}
+  .body h3{margin:.1em 0 .25em;font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .body p{margin:.2em 0;font-size:15px}
+  .body .check{display:inline-flex;align-items:center;gap:7px;margin-top:9px;font-size:13px;
+               color:var(--muted);cursor:pointer;user-select:none}
+  .body .check input{width:16px;height:16px;accent-color:var(--ok)}
+  a.btn{display:inline-block;margin-top:6px;background:var(--accent);color:var(--ink);font-weight:700;
+        text-decoration:none;padding:7px 14px;border-radius:8px;font-size:14px;border:1px solid #ca9a20}
+  a.btn:hover{background:var(--accent2);color:#fff}
+  a.btn.ghost{background:transparent;border-color:var(--line);color:var(--accent2)}
+  .editme{display:inline-block;background:#fff3cd;border:1px dashed #c79a1a;color:#7a5a00;
+          font-size:11px;font-weight:700;padding:1px 7px;border-radius:5px;letter-spacing:.04em;vertical-align:middle}
+
+  /* callouts */
+  .callout{border-radius:12px;padding:16px 18px;margin:14px 0;font-size:15px}
+  .callout.warn{background:#fdecec;border:1px solid #efc3c0}
+  .callout.warn b{color:var(--warn)}
+  .callout.tip{background:#fcf8ee;border:1px solid var(--line)}
+  .callout .t{font-weight:800;display:block;margin-bottom:4px}
+
+  /* arc */
+  .arc{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+  .arc div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px}
+  .arc div b{display:block;font-size:12px;color:var(--accent2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+
+  /* prompts */
+  .prompt{background:#2a221b;color:#fdf6e3;border-radius:8px;padding:10px 13px;margin:8px 0;
+          font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;position:relative}
+  .prompt::before{content:"prompt";position:absolute;top:-9px;left:10px;background:var(--accent);color:var(--ink);
+                  font-family:inherit;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;
+                  font-family:-apple-system,sans-serif;text-transform:uppercase;letter-spacing:.05em}
+
+  /* worksheet */
+  .ws h3{font-size:17px;margin:22px 0 4px;display:flex;align-items:center;gap:9px}
+  .ws h3 .b{width:24px;height:24px;border-radius:6px;background:var(--accent);color:var(--ink);
+            display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none}
+  .ws h3 .b.bonus{background:var(--ink);color:#fff}
+  .ws .hint{font-size:13px;color:var(--muted);margin:.1em 0 .2em}
+  .ws .arrow{color:var(--accent2);font-weight:600;font-size:12.5px}
+  .ws ul{margin:8px 0 0;padding-left:20px;font-size:14.5px}
+  .ws ul li{margin:3px 0}
+  .tbl{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+  .tbl th,.tbl td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tbl th{background:#fcf6e6;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .tbl td:first-child{font-weight:700;white-space:nowrap;color:var(--ink)}
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  @media(max-width:560px){.tbl td:first-child{white-space:normal}}
+  footer{padding:30px 0 60px;color:var(--muted);font-size:13px}
+
+  /* "what is claude code" explainer + accordion */
+  .whatis{background:#fcf8ee;border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:18px 0}
+  .whatis .lead{font-size:18px;margin:0 0 14px;color:#3a3026}
+  .whatis .lead b{color:var(--accent2)}
+  .keys{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:10px}
+  .keys li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;font-size:15.5px}
+  .keys .ic{width:32px;height:32px;border-radius:9px;background:var(--accent);color:var(--ink);
+            display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+  .keys b{color:var(--ink)}
+  details.acc{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:8px 0;overflow:hidden}
+  details.acc>summary{cursor:pointer;padding:12px 16px;font-weight:700;font-size:15px;
+                      list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  details.acc>summary::-webkit-details-marker{display:none}
+  details.acc>summary::after{content:"+";color:var(--accent2);font-weight:800;font-size:20px;line-height:1}
+  details.acc[open]>summary::after{content:"\2013"}
+  details.acc>summary:hover{color:var(--accent2)}
+  details.acc .ac-body{padding:0 16px 14px;font-size:14.5px;color:#3a3026}
+  .acc-wrap{margin-top:14px}
+  .acc-wrap>.lbl{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:6px 0}
+
+  /* sticky top bar with the class URL + on/off toggle */
+  .topbar{position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+  .urlbar{background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;
+          gap:14px;padding:12px 22px;transition:padding .2s}
+  .urlbar .url{color:#fff;text-decoration:none;font-weight:800;letter-spacing:-.5px;
+               font-size:clamp(18px,3.4vw,38px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .urlbar .url .pre{color:var(--accent)}
+  .urlbar .off-label{display:none;color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.04em}
+  .urlbar.off{padding:7px 22px}
+  .urlbar.off .url{display:none}
+  .urlbar.off .off-label{display:inline}
+  /* toggle switch */
+  .switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;flex:none;font-size:12px;
+          color:#d8cba6;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .switch input{position:absolute;opacity:0;pointer-events:none}
+  .track{width:46px;height:26px;border-radius:99px;background:#5a4f42;position:relative;transition:.2s}
+  .track::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+                background:#fff;transition:.2s}
+  .switch input:checked + .track{background:var(--accent)}
+  .switch input:checked + .track::after{transform:translateX(20px)}
+  .progress{height:5px;background:var(--line)}
+  .progress>span{display:block;height:100%;width:0;background:var(--accent2);transition:width .3s}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="urlbar" id="urlbar">
+    <a class="url" href="https://claude-code-waffle.netlify.app/"><span class="pre">↗</span> claude-code-waffle.netlify.app</a>
+    <span class="off-label">Class link hidden</span>
+    <label class="switch"><input type="checkbox" id="urltoggle" checked><span class="track"></span><span>Show link</span></label>
+  </div>
+  <div class="progress"><span id="bar"></span></div>
+</div>
+
+<header>
+  <div class="wrap hero">
+    <div class="kick">IRE 2026 Masterclass</div>
+    <h1><span class="wh">Claude Code</span> for Data Journalism</h1>
+    <p class="lede">You have questions. You have data. What you're missing is the ability to write code to answer them. Today you'll turn a spreadsheet of every Waffle House in America into documentation, a map, a real analysis, and a notebook an editor could re-run — without writing a line of code.</p>
+    <div class="meta">🧇 Bring a laptop · No coding experience needed · Just spreadsheet basics</div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Do this <b>now</b> — before we start</h2>
+
+    <ol class="steps" id="steps">
+      <li>
+        <div class="num"></div>
+        <div class="body">
+          <h3>Create a Claude account</h3>
+          <p>Free to sign up. Use whatever email you like.</p>
+          <a class="btn" href="https://claude.ai" target="_blank" rel="noopener">Sign up at claude.ai →</a>
+          <label class="check"><input type="checkbox" data-step> Done</label>
+        </div>
+      </li>
+      <li>
+        <div class="num"></div>
+        <div class="body">
+          <h3>Download the desktop app</h3>
+          <p>We're using the desktop app, not the website. Install it and sign in.</p>
+          <a class="btn" href="https://claude.ai/download" target="_blank" rel="noopener">Download the app →</a>
+          <label class="check"><input type="checkbox" data-step> Done</label>
+        </div>
+      </li>
+      <li>
+        <div class="num"></div>
+        <div class="body">
+          <h3>Upgrade to Claude Pro</h3>
+          <p>Required for Claude Code. In the app/site: <b>Settings → upgrade to Pro</b>.</p>
+          <div class="callout warn" style="margin:10px 0">
+            <span class="t">⚠️ Two things to know before you pay</span>
+            Claude Code needs <b>Claude Pro ($20/month)</b>. <b>Cancel after one month</b> and <b>do NOT choose the annual plan.</b>
+            Don't want to pay? Sit next to someone and follow along — you'll still get everything.
+          </div>
+          <a class="btn ghost" href="https://claude.ai/settings/billing" target="_blank" rel="noopener">Open billing settings →</a>
+          <label class="check"><input type="checkbox" data-step> Done</label>
+        </div>
+      </li>
+      <li>
+        <div class="num"></div>
+        <div class="body">
+          <h3>Download today's class folder</h3>
+          <p>Grab the zip, unzip it, and put the folder <b>on your Desktop</b>. It has the data and your worksheet inside.</p>
+          <a class="btn" href="claude_waffle_house.zip" download>Download the class folder →</a>
+          <label class="check"><input type="checkbox" data-step> Done</label>
+        </div>
+      </li>
+      <li>
+        <div class="num"></div>
+        <div class="body">
+          <h3>Save your tokens! 🙅</h3>
+          <p>We're saving tokens. Pro gives you a usage budget that <b>resets every 5 hours</b>, and heavy use can run it out — so we won't burn any warming up. Wait for the go-ahead.</p>
+          <label class="check"><input type="checkbox" data-step> Got it</label>
+        </div>
+      </li>
+    </ol>
+
+    <div class="whatis">
+      <p class="lead">So… <b>what is Claude Code?</b></p>
+      <ul class="keys">
+        <li><span class="ic">⌨️</span><span><b>It writes the code for you.</b> You ask in plain English; Claude writes and runs the code behind the scenes. You don't type code today.</span></li>
+        <li><span class="ic">📁</span><span><b>It works on your local files.</b> Real files on your computer — your spreadsheet, your PDF — that it can read, change, and leave behind for you to keep.</span></li>
+        <li><span class="ic">🔒</span><span><b>It only works in the folder you give it.</b> Point it at your class folder and that's all it can touch. Nothing outside that folder is in play.</span></li>
+      </ul>
+
+      <div class="acc-wrap">
+        <div class="lbl">A few more questions</div>
+
+        <details class="acc">
+          <summary>Do I need to know how to code?</summary>
+          <div class="ac-body">No. That's the whole point. You describe what you want — "load this file," "which state has the most?" — and Claude handles the code. If you can write a clear sentence, you can use it.</div>
+        </details>
+
+        <details class="acc">
+          <summary>Can it mess up or delete my files?</summary>
+          <div class="ac-body">It asks permission before it changes anything (unless you turn on auto-approve / "bypass permissions"), and every change is a <b>checkpoint</b> you can rewind. In your class folder, you can't permanently break anything — experiment freely.</div>
+        </details>
+
+        <details class="acc">
+          <summary>Is my data uploaded somewhere?</summary>
+          <div class="ac-body">You never upload files by hand — Claude reads them straight from your folder. To answer you, it does send the relevant parts of your files to Anthropic's models to process, the same way the chat does. So treat anything sensitive accordingly; today's Waffle House data is public.</div>
+        </details>
+
+        <details class="acc">
+          <summary>How is this different from the Claude chat I've used?</summary>
+          <div class="ac-body">Same chat feel, but with hands. The website chat just talks back. Claude Code can open your files, run real code, build charts and web pages, and save results into your folder.</div>
+        </details>
+
+        <details class="acc">
+          <summary>What can it actually build?</summary>
+          <div class="ac-body">Today: a data dictionary, an interactive map, charts, a reproducible notebook, a clean table pulled out of a PDF, and a web page — all by asking.</div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What we'll <b>build</b> today</h2>
+    <div class="arc">
+      <div><b>Load</b> Open the data by asking</div>
+      <div><b>Document</b> Auto data dictionary + quality checks</div>
+      <div><b>See</b> An interactive map &amp; charts</div>
+      <div><b>Ask</b> Answer real questions</div>
+      <div><b>Reproduce</b> An editor-ready notebook</div>
+      <div><b>Extract</b> Pull a table out of a PDF</div>
+      <div><b>Verify</b> Check the parse against the source</div>
+      <div><b>Publish</b> A scrollytelling story</div>
+    </div>
+  </div>
+</section>
+
+<section class="ws">
+  <div class="wrap">
+    <h2>The full <b>worksheet</b> — keep this open</h2>
+    <p style="font-size:15px;color:#3a3026;margin-top:-6px">Part 1 is every prompt, in order. Part 2 is the features we'll touch. (This page — <b>index.html</b> — is in your class folder too, so you can open it anytime.)</p>
+
+    <h3 style="margin-top:26px;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Part 1 · Prompt cheat-sheet</h3>
+    <p class="hint">Every step is just a sentence you type. Start here:</p>
+    <div class="prompt">What files are in this folder?</div>
+
+    <h3><span class="b">1</span> Load &amp; meet your data</h3>
+    <div class="prompt">Load waffle_houses.csv and tell me what's in it — rows, columns, and a few example rows.</div>
+
+    <h3><span class="b">2</span> Document &amp; quality-check <span class="arrow">— before you trust anything</span></h3>
+    <div class="prompt">Create a data dictionary for every column, then check for missing values, duplicates, type problems, and inconsistencies that could affect analysis. Save it as DATA_DICTIONARY.md.</div>
+    <p class="hint">Always ask the skeptical follow-ups:</p>
+    <div class="prompt">Are the ID columns all the format I expect?</div>
+    <div class="prompt">What values are blank, and would that change any analysis?</div>
+
+    <h3><span class="b">3</span> See it — build a quick web app</h3>
+    <p class="hint">First switch to <b>Plan Mode</b> (so Claude plans it <em>with</em> you and asks questions before building), then type:</p>
+    <div class="prompt">I want to build a self-contained web app in one HTML file with a map of the locations and a bar chart with a count by state. I'm sure there are other interesting things we could do. Enter plan mode and ask me some questions to come up with a simple app.</div>
+    <p class="hint">Answer its questions, let it build, then keep going. A few follow-ups you <em>could</em> ask — but <b>come up with your own!</b></p>
+    <div class="prompt">Add a "Count by" dropdown so I can count any column, and always show blank/NA as its own bar.</div>
+    <div class="prompt">Draw a real base map under the dots and make it work offline.</div>
+    <div class="prompt">Make each dot hoverable with a popup of its details.</div>
+
+    <h3><span class="b">4</span> Ask your questions</h3>
+    <p class="hint">Anything you'd do in a spreadsheet — grouping, counting, sorting. Today's questions:</p>
+    <div class="prompt">Which state has the most Waffle Houses, and what share of the total is that?</div>
+    <div class="prompt">What share of all locations are in the top five states?</div>
+    <div class="prompt">Break locations down by operator type — corporate vs. subsidiary vs. franchise.</div>
+    <div class="prompt">Which single city has the most?</div>
+    <div class="prompt">How many states have zero Waffle Houses?</div>
+    <div class="prompt">Which Waffle House is the furthest north, south, east, and west?</div>
+    <p class="hint"><b>Always:</b></p>
+    <div class="prompt">Show me exactly how you got that number.</div>
+
+    <h3><span class="b">5</span> Make it reproducible <span class="arrow">— the editor test</span></h3>
+    <div class="prompt">Build a Jupyter notebook an editor could review: state the finding in plain English, document the data source, run the quality checks, reproduce the finding step by step from the raw file with a chart, and end with limitations. Then run it top to bottom.</div>
+    <div class="prompt">Export the notebook as a standalone HTML file I can open in any browser.</div>
+
+    <h3><span class="b">6</span> Pull data out of a PDF — then VERIFY</h3>
+    <div class="prompt">Read Menu-Nutritionals-2026-05-05.pdf and extract the tables into a clean CSV.</div>
+    <div class="prompt">Show me 5 rows next to the original PDF so I can confirm the parse is right. What could have gone wrong?</div>
+    <div class="callout warn" style="margin-top:10px"><b>⚠️ An extracted table is a claim, not a fact, until you check it against the source.</b></div>
+
+    <h3><span class="b">7</span> Build a web page</h3>
+    <div class="prompt">Build a single-file scrollytelling page about the saltiest items at Waffle House, with a sticky chart that updates as I scroll. Add a methods note citing the source.</div>
+
+    <h3><span class="b bonus">★</span> Bonus · Make your own reusable skill</h3>
+    <div class="prompt">Create a skill called data-intake that, given a CSV, loads it, writes a data dictionary, and runs standard data-quality checks — so I can reuse this on any dataset.</div>
+
+    <div class="callout tip" style="margin-top:20px">
+      <span class="t">Habits that make it journalism (not just a demo)</span>
+      <ul style="margin:6px 0 0">
+        <li><b>Document and check before you analyze.</b> QA is the first half of fact-checking.</li>
+        <li><b>Make Claude show its work.</b> Ask for the numbers, the steps, the source rows.</li>
+        <li><b>Verify extractions</b> against the original.</li>
+        <li><b>Keep it reproducible.</b> If an editor can't re-run it, it isn't done.</li>
+      </ul>
+    </div>
+
+    <h3 style="margin-top:30px;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Part 2 · Claude Code features we used today</h3>
+    <p class="hint">Where to find them on your screen (labels may move as the app updates).</p>
+    <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr><th>Feature</th><th>What it does / why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>Chat vs Cowork vs Code</td><td>Three surfaces in the app. <b>Chat</b> = the Claude you know. <b>Code</b> = what we used; it reads your files, runs code, builds things. <b>Cowork</b> = another mode, not today.</td></tr>
+        <tr><td>Model picker → Opus 4.8 (medium)</td><td>Sets which model and how hard it "thinks." We used Opus 4.8 at medium reasoning.</td></tr>
+        <tr><td>Plan Mode</td><td>Claude plans the work <b>with</b> you — and asks questions — before it builds. Great for designing something instead of just ordering it.</td></tr>
+        <tr><td>Claude Pro</td><td>Required for Claude Code. $20/mo — cancel after a month, don't pick annual. No budget? Pair up.</td></tr>
+        <tr><td>5-hour usage limit</td><td>Your token budget resets every 5 hours. Don't burn it on warm-ups.</td></tr>
+        <tr><td>Usage / token icon</td><td>Shows how many tokens you've spent — your budget meter.</td></tr>
+        <tr><td>Permissions</td><td>Claude asks before it reads or changes files.</td></tr>
+        <tr><td>Bypass Permissions</td><td>Turns the asking off for a trusted folder — convenient, but Claude then acts without checking first.</td></tr>
+        <tr><td>Esc to interrupt</td><td>Stops Claude mid-response. You're always in control.</td></tr>
+        <tr><td>"See what it's doing"</td><td>Expand the activity/steps to watch it read files and run code — how you check its work.</td></tr>
+        <tr><td>@-mention a file</td><td>Type <code>@</code> and pick a file instead of typing its name.</td></tr>
+        <tr><td>Open a file in the sidebar</td><td>Click a file link Claude makes to open it in the side panel.</td></tr>
+        <tr><td>Checkpoints / rewind</td><td>Undo Claude's changes — rewind to before any edit. You can't permanently break your folder.</td></tr>
+        <tr><td>New chat</td><td>Start fresh to clear context and save tokens.</td></tr>
+        <tr><td>Skills (<code>/</code> menu)</td><td>Packaged expertise Claude uses automatically (e.g., reading PDFs). Type <code>/</code> to see what's available — and you can build your own.</td></tr>
+        <tr><td>HTML export</td><td>Turn a notebook or app into one shareable file that opens in any browser, no install.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Claude Code for Data Journalism · Waffle House edition. Stuck on setup? Raise your hand or pair up with a neighbor. 🧇
+  </div>
+</footer>
+
+<script>
+  // persist checkboxes + progress
+  const boxes=[...document.querySelectorAll('input[data-step]')];
+  const KEY='wh-class-setup';
+  const saved=JSON.parse(localStorage.getItem(KEY)||'[]');
+  boxes.forEach((b,i)=>{ b.checked=!!saved[i]; sync(b); b.addEventListener('change',()=>{sync(b);save();}); });
+  function sync(b){ b.closest('li').classList.toggle('done',b.checked); upd(); }
+  function save(){ localStorage.setItem(KEY,JSON.stringify(boxes.map(b=>b.checked))); }
+  function upd(){ const n=boxes.filter(b=>b.checked).length; document.getElementById('bar').style.width=(n/boxes.length*100)+'%'; }
+  upd();
+
+  // URL banner on/off toggle (persisted)
+  const tog=document.getElementById('urltoggle'), urlbar=document.getElementById('urlbar'), TKEY='wh-url-shown';
+  const shown=localStorage.getItem(TKEY); if(shown==='0') tog.checked=false;
+  function syncTog(){ urlbar.classList.toggle('off',!tog.checked); localStorage.setItem(TKEY, tog.checked?'1':'0'); }
+  tog.addEventListener('change',syncTog); syncTog();
+</script>
+</body>
+</html>
