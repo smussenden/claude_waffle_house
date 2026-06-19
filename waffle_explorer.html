@@ -96,13 +96,23 @@ const FAMILY_COLOR = { Corporate:"#2563eb", Subsidiary:"#16a34a", Franchise:"#ea
 const FLAG_LABEL = { museum:"Museum (not a restaurant)", duplicate:"Duplicate site (#442/#3442)", closed:"Marked Closed" };
 
 // ---- projection (equirectangular, aspect-corrected) ----
-// Fit to the DATA's footprint (not the whole US) so the dots fill the frame.
-// Outline states that fall entirely outside this box (e.g. AK, HI) are dropped.
+// Fit to the CONTIGUOUS-US outline so all 48 states show. Dots use the same
+// transform, so they land wherever the CSV's lat/lon put them (no guessing).
 const MAP_W = 640, MAP_H = 420, PAD = 16;
-const lats = DATA.map(d=>d.lat), lons = DATA.map(d=>d.lon);
-const M = 1.5; // degrees of margin so border states show for context
-const latMin=Math.min(...lats)-M, latMax=Math.max(...lats)+M;
-const lonMin=Math.min(...lons)-M, lonMax=Math.max(...lons)+M;
+const EXCLUDE = new Set(["Alaska","Hawaii","Puerto Rico"]);  // not contiguous
+const STATES = OUTLINE ? OUTLINE.features.filter(f=>!EXCLUDE.has(f.properties.name)) : [];
+let latMin=Infinity, latMax=-Infinity, lonMin=Infinity, lonMax=-Infinity;
+if (STATES.length){
+  STATES.forEach(f=>eachCoord(f.geometry,(lon,lat)=>{
+    if(lon<lonMin)lonMin=lon; if(lon>lonMax)lonMax=lon;
+    if(lat<latMin)latMin=lat; if(lat>latMax)latMax=lat;
+  }));
+} else {
+  // fallback (no outline available): fit to the data footprint instead
+  const lats=DATA.map(d=>d.lat), lons=DATA.map(d=>d.lon), M=1.5;
+  latMin=Math.min(...lats)-M; latMax=Math.max(...lats)+M;
+  lonMin=Math.min(...lons)-M; lonMax=Math.max(...lons)+M;
+}
 const meanLat=(latMin+latMax)/2, kx=Math.cos(meanLat*Math.PI/180);
 const spanX=(lonMax-lonMin)*kx, spanY=(latMax-latMin);
 const scale=Math.min((MAP_W-2*PAD)/spanX, (MAP_H-2*PAD)/spanY);
@@ -126,15 +136,9 @@ function el(tag, attrs){ const e=document.createElementNS(SVGNS,tag);
 
 const svg = el("svg",{viewBox:`0 0 ${MAP_W} ${MAP_H}`});
 
-// state polygons — only those overlapping the data box (drops AK, HI, far-west states)
-function bboxOverlaps(geom){
-  let lo1=Infinity,la1=Infinity,lo2=-Infinity,la2=-Infinity;
-  eachCoord(geom,(lon,lat)=>{ if(lon<lo1)lo1=lon; if(lat<la1)la1=lat; if(lon>lo2)lo2=lon; if(lat>la2)la2=lat; });
-  return !(lo2<lonMin || lo1>lonMax || la2<latMin || la1>latMax);
-}
-if (OUTLINE){
-  OUTLINE.features.forEach(f=>{
-    if(!bboxOverlaps(f.geometry)) return;
+// state polygons — all 48 contiguous states
+if (STATES.length){
+  STATES.forEach(f=>{
     const polys = f.geometry.type==="Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
     polys.forEach(poly=>{
       const ring = poly[0].map(([lon,lat])=>project(lon,lat).join(",")).join(" ");
