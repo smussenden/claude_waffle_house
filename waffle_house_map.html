@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waffle House Locations by State</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Georgia', serif; background: #1a1a1a; color: #f5e6c8; }
+  h1 { text-align: center; padding: 20px; font-size: 2em; color: #f5c518; letter-spacing: 2px; }
+  h1 span { font-size: 0.5em; display: block; color: #ccc; font-style: italic; }
+  #map-container { display: flex; justify-content: center; padding: 10px 20px; }
+  svg { max-width: 100%; height: auto; }
+  .state { stroke: #333; stroke-width: 0.5; cursor: pointer; transition: opacity 0.2s; }
+  .state:hover { opacity: 0.75; stroke: #f5c518; stroke-width: 1.5; }
+  .state-label { font-size: 7px; fill: #fff; text-anchor: middle; pointer-events: none; font-weight: bold; }
+  #tooltip {
+    position: fixed; background: #222; border: 2px solid #f5c518;
+    border-radius: 8px; padding: 10px 16px; font-size: 14px;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s;
+    z-index: 999; color: #f5e6c8;
+  }
+  #tooltip strong { color: #f5c518; font-size: 16px; }
+  #legend { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 10px 20px 0; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+  .legend-box { width: 20px; height: 14px; border-radius: 3px; border: 1px solid #555; }
+  #table-container { max-width: 900px; margin: 20px auto; padding: 0 20px 40px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: #f5c518; color: #1a1a1a; padding: 10px; text-align: left; }
+  td { padding: 8px 10px; border-bottom: 1px solid #333; }
+  tr:hover td { background: #2a2a2a; }
+  .bar { display: inline-block; height: 12px; background: #f5c518; border-radius: 2px; vertical-align: middle; }
+  .zero { color: #666; font-style: italic; }
+  h2 { text-align: center; color: #f5c518; margin: 20px 0 10px; }
+</style>
+</head>
+<body>
+<h1>🧇 Waffle House Locations Across the U.S.
+  <span>~2,024 locations across 25 states (2025)</span>
+</h1>
+
+<div id="tooltip"></div>
+
+<div id="map-container">
+  <svg id="us-map" viewBox="0 0 960 600" width="960" height="600"></svg>
+</div>
+
+<div id="legend">
+  <span style="font-size:13px; margin-right:8px;">Locations:</span>
+  <div class="legend-item"><div class="legend-box" style="background:#fff3cd;"></div> 0</div>
+  <div class="legend-item"><div class="legend-box" style="background:#ffe066;"></div> 1–20</div>
+  <div class="legend-item"><div class="legend-box" style="background:#ffc107;"></div> 21–80</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fd7e14;"></div> 81–150</div>
+  <div class="legend-item"><div class="legend-box" style="background:#e85d04;"></div> 151–200</div>
+  <div class="legend-item"><div class="legend-box" style="background:#c1121f;"></div> 200+</div>
+</div>
+
+<div id="table-container">
+  <h2>Locations by State</h2>
+  <table id="state-table">
+    <thead><tr><th>State</th><th>Locations</th><th>Distribution</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const data = {
+  "GA": 433, "FL": 185, "NC": 183, "SC": 171, "AL": 153,
+  "TN": 134, "TX": 121, "LA": 99,  "MS": 88,  "OH": 80,
+  "VA": 68,  "KY": 62,  "AR": 46,  "MO": 38,  "IN": 24,
+  "OK": 16,  "AZ": 15,  "MD": 12,  "CO": 10,  "PA": 10,
+  "WV": 5,   "KS": 4,   "DE": 3,   "IL": 2,   "NM": 2
+};
+
+const stateNames = {
+  "AL":"Alabama","AK":"Alaska","AZ":"Arizona","AR":"Arkansas","CA":"California",
+  "CO":"Colorado","CT":"Connecticut","DE":"Delaware","FL":"Florida","GA":"Georgia",
+  "HI":"Hawaii","ID":"Idaho","IL":"Illinois","IN":"Indiana","IA":"Iowa",
+  "KS":"Kansas","KY":"Kentucky","LA":"Louisiana","ME":"Maine","MD":"Maryland",
+  "MA":"Massachusetts","MI":"Michigan","MN":"Minnesota","MS":"Mississippi","MO":"Missouri",
+  "MT":"Montana","NE":"Nebraska","NV":"Nevada","NH":"New Hampshire","NJ":"New Jersey",
+  "NM":"New Mexico","NY":"New York","NC":"North Carolina","ND":"North Dakota","OH":"Ohio",
+  "OK":"Oklahoma","OR":"Oregon","PA":"Pennsylvania","RI":"Rhode Island","SC":"South Carolina",
+  "SD":"South Dakota","TN":"Tennessee","TX":"Texas","UT":"Utah","VT":"Vermont",
+  "VA":"Virginia","WA":"Washington","WV":"West Virginia","WI":"Wisconsin","WY":"Wyoming"
+};
+
+function getColor(n) {
+  if (!n || n === 0) return "#fff3cd";
+  if (n <= 20)  return "#ffe066";
+  if (n <= 80)  return "#ffc107";
+  if (n <= 150) return "#fd7e14";
+  if (n <= 200) return "#e85d04";
+  return "#c1121f";
+}
+
+// Simplified US state paths (Albers USA projection approximation)
+// Using a minimal SVG path dataset for the 50 states
+const statePaths = {
+  "AL": "M 530 370 L 545 370 L 548 410 L 535 420 L 525 405 Z",
+  "AK": "M 120 480 L 200 480 L 220 520 L 180 545 L 130 530 Z",
+  "AZ": "M 195 330 L 255 330 L 260 395 L 200 405 L 185 380 Z",
+  "AR": "M 490 330 L 540 330 L 542 365 L 490 368 Z",
+  "CA": "M 115 240 L 165 220 L 180 295 L 175 365 L 130 360 L 100 310 Z",
+  "CO": "M 270 270 L 355 268 L 357 310 L 272 313 Z",
+  "CT": "M 735 195 L 760 192 L 762 210 L 738 213 Z",
+  "DE": "M 710 230 L 722 228 L 724 248 L 711 250 Z",
+  "FL": "M 548 410 L 600 408 L 620 440 L 605 480 L 580 490 L 555 455 L 545 430 Z",
+  "GA": "M 548 368 L 598 365 L 603 408 L 548 410 Z",
+  "HI": "M 280 530 L 340 530 L 340 555 L 280 555 Z",
+  "ID": "M 185 155 L 230 145 L 240 210 L 215 235 L 190 220 Z",
+  "IL": "M 530 250 L 558 248 L 562 308 L 535 315 L 528 290 Z",
+  "IN": "M 558 248 L 588 245 L 590 300 L 562 308 Z",
+  "IA": "M 468 220 L 530 215 L 532 250 L 470 255 Z",
+  "KS": "M 375 285 L 465 282 L 467 315 L 377 318 Z",
+  "KY": "M 562 290 L 640 285 L 645 315 L 565 320 Z",
+  "LA": "M 490 390 L 540 388 L 545 420 L 515 430 L 493 415 Z",
+  "ME": "M 770 130 L 800 120 L 810 155 L 778 160 Z",
+  "MD": "M 675 240 L 712 235 L 715 255 L 678 260 Z",
+  "MA": "M 742 175 L 788 170 L 792 190 L 745 195 Z",
+  "MI": "M 570 185 L 620 178 L 625 225 L 572 230 Z",
+  "MN": "M 455 150 L 510 145 L 515 210 L 458 215 Z",
+  "MS": "M 510 355 L 545 352 L 548 410 L 512 415 Z",
+  "MO": "M 465 280 L 535 275 L 538 320 L 468 325 Z",
+  "MT": "M 195 140 L 320 135 L 322 190 L 198 195 Z",
+  "NE": "M 370 240 L 460 235 L 463 278 L 372 282 Z",
+  "NV": "M 155 240 L 200 230 L 205 300 L 185 330 L 148 295 Z",
+  "NH": "M 748 150 L 768 147 L 770 185 L 750 188 Z",
+  "NJ": "M 708 210 L 728 207 L 730 235 L 710 238 Z",
+  "NM": "M 255 330 L 328 328 L 330 390 L 258 393 Z",
+  "NY": "M 668 175 L 745 168 L 748 210 L 672 218 Z",
+  "NC": "M 598 300 L 690 293 L 695 325 L 600 332 Z",
+  "ND": "M 370 150 L 455 145 L 458 188 L 373 192 Z",
+  "OH": "M 590 235 L 635 230 L 638 278 L 592 283 Z",
+  "OK": "M 375 318 L 490 312 L 493 352 L 378 358 Z",
+  "OR": "M 115 175 L 185 165 L 190 220 L 118 228 Z",
+  "PA": "M 635 205 L 710 198 L 712 233 L 638 240 Z",
+  "RI": "M 763 192 L 778 190 L 780 205 L 765 207 Z",
+  "SC": "M 600 325 L 650 318 L 655 360 L 603 368 Z",
+  "SD": "M 372 190 L 458 185 L 460 233 L 375 238 Z",
+  "TN": "M 540 320 L 645 313 L 648 340 L 542 348 Z",
+  "TX": "M 328 328 L 490 318 L 498 415 L 390 430 L 330 395 Z",
+  "UT": "M 210 263 L 268 258 L 272 312 L 213 318 Z",
+  "VT": "M 730 150 L 750 147 L 752 182 L 732 185 Z",
+  "VA": "M 640 258 L 715 250 L 718 285 L 643 293 Z",
+  "WA": "M 120 130 L 190 122 L 193 162 L 122 168 Z",
+  "WV": "M 615 255 L 650 250 L 655 288 L 618 295 Z",
+  "WI": "M 510 170 L 565 165 L 568 215 L 513 220 Z",
+  "WY": "M 270 200 L 358 195 L 360 255 L 272 260 Z"
+};
+
+// State label positions
+const labelPos = {
+  "AL":[537,395],"AK":[160,508],"AZ":[222,368],"AR":[515,350],"CA":[140,295],
+  "CO":[313,291],"CT":[749,202],"DE":[716,239],"FL":[582,450],"GA":[573,388],
+  "HI":[310,542],"ID":[210,193],"IL":[545,280],"IN":[575,275],"IA":[500,237],
+  "KS":[421,300],"KY":[603,303],"LA":[517,410],"ME":[785,142],"MD":[693,248],
+  "MA":[766,183],"MI":[597,205],"MN":[483,180],"MS":[527,385],"MO":[501,300],
+  "MT":[258,165],"NE":[415,258],"NV":[176,278],"NH":[759,168],"NJ":[719,222],
+  "NM":[292,360],"NY":[706,192],"NC":[647,313],"ND":[413,168],"OH":[612,257],
+  "OK":[433,335],"OR":[152,197],"PA":[672,218],"RI":[771,198],"SC":[625,343],
+  "SD":[415,212],"TN":[593,332],"TX":[413,372],"UT":[240,288],"VT":[741,165],
+  "VA":[677,272],"WA":[155,145],"WV":[632,273],"WI":[537,193],"WY":[315,228]
+};
+
+const svg = document.getElementById("us-map");
+const tooltip = document.getElementById("tooltip");
+
+Object.entries(statePaths).forEach(([abbr, path]) => {
+  const count = data[abbr] || 0;
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", path);
+  p.setAttribute("class", "state");
+  p.setAttribute("fill", getColor(count));
+  p.setAttribute("data-state", abbr);
+
+  p.addEventListener("mousemove", e => {
+    tooltip.style.opacity = "1";
+    tooltip.style.left = (e.clientX + 12) + "px";
+    tooltip.style.top = (e.clientY - 40) + "px";
+    tooltip.innerHTML = `<strong>${stateNames[abbr]}</strong><br>${count > 0 ? "🧇 " + count + " location" + (count !== 1 ? "s" : "") : "No locations"}`;
+  });
+  p.addEventListener("mouseleave", () => { tooltip.style.opacity = "0"; });
+
+  g.appendChild(p);
+
+  if (labelPos[abbr]) {
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", labelPos[abbr][0]);
+    text.setAttribute("y", labelPos[abbr][1]);
+    text.setAttribute("class", "state-label");
+    text.textContent = abbr;
+    g.appendChild(text);
+  }
+
+  svg.appendChild(g);
+});
+
+// Build table
+const sorted = Object.entries({...data}).sort((a,b) => b[1]-a[1]);
+const max = sorted[0][1];
+const tbody = document.querySelector("#state-table tbody");
+
+// Add states with 0
+const allStates = Object.keys(stateNames);
+const zeroStates = allStates.filter(s => !data[s]);
+const allRows = [...sorted, ...zeroStates.map(s => [s, 0])];
+
+allRows.forEach(([abbr, count]) => {
+  const tr = document.createElement("tr");
+  const barWidth = count ? Math.round((count / max) * 280) : 0;
+  tr.innerHTML = `
+    <td>${stateNames[abbr]} (${abbr})</td>
+    <td>${count > 0 ? count : '<span class="zero">0</span>'}</td>
+    <td><span class="bar" style="width:${barWidth}px"></span></td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>
