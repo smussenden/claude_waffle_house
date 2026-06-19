@@ -56,7 +56,7 @@ GA 442 · FL 188 · NC 186 · SC 175 · AL 156 · TN 139 · TX 127 · LA 103 · 
 | **Missing values** | `Operated By` 1 blank · `Online Order Link` 3 blanks · `Formatted Business Hours` 2 blanks. All other columns 100% populated. |
 | **Duplicate Store Codes** | None — all 2,006 unique. |
 | **Fully duplicated rows** | None. |
-| **Duplicate lat/long pairs** | None. |
+| **Duplicate lat/long pairs** | None (exact). But **1 same-location pair** exists under different codes — see §4a. |
 | **Store Code type** | 2,005 numeric, **1 non-numeric** (`WH_Museum`). ⚠️ Do not cast the column to integer — it will error. |
 | **Latitude / Longitude type** | All parse as floats; all within US bounds (lat 25.1–41.8, lon −112.3 to −75.3). |
 | **Postal Code** | All 2,006 are valid 5-digit strings. |
@@ -80,10 +80,31 @@ GA 442 · FL 188 · NC 186 · SC 175 · AL 156 · TN 139 · TX 127 · LA 103 · 
 
 ---
 
+## 4a · Duplicate & near-duplicate locations
+
+A full scan for same-address and near-coordinate stores found the problem is **isolated, not systematic.**
+
+**One true duplicate location** (same building, two store codes):
+
+| Pair | Address | Distance apart | Read |
+|------|---------|---------------:|------|
+| **#442 ↔ #3442** | `2363 College Dr`, Baton Rouge, LA 70808 | **57 m** | Same physical site under two codes — likely a renumbering/rebuild (both `WAFFLE HOUSE, INC`). |
+
+Detected by **both** methods independently: identical normalized address *and* coordinates 57 m apart. It is **not** caught by the duplicate-Store-Code or duplicate-row checks, because the codes and the rows differ.
+
+**Near pairs in the 150–500 m band are all legitimately separate restaurants** (e.g. two stores along the same highway strip), not duplicates — Fayetteville NC (#364/#1333, 230 m), Dawsonville GA, College Park GA, Thomson GA, Byron GA, Douglasville GA. The museum (`WH_Museum`) sits ~440 m from real store #1000 in Decatur — expected.
+
+**Impact:** if you count "unique physical locations," the #442/#3442 pair double-counts by one.
+- 2,006 rows
+- − 1 duplicate location (#442/#3442) → 2,005 distinct sites
+- − 1 museum (if excluded) → **~2,004 distinct operating restaurants**
+
+---
+
 ## 5 · Recommended handling
 
 - Read **Store Code** and **Postal Code** as **strings**.
 - Treat **lat/long** as floats (clean, no nulls).
-- For location counts, **state your decision on the museum row** and the two "Closed" stores explicitly.
+- For location counts, **state your decision on the museum row**, the two "Closed" stores, and the **#442/#3442 duplicate** explicitly.
 - Derive an **operator-family** column (Corporate / Subsidiary / Franchise) from `Operated By` for cleaner grouping.
 - When using phone numbers, **split the 228 dual-number rows**.
